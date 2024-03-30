@@ -190,6 +190,9 @@ module type S = sig
   (** [partition p t] is [(filter p t, filter np t)] where [np] is the negation
       of [p]. *)
 
+  val map : (k -> p -> k * p) -> t -> t
+  (** [map f t] is [f] applied to all the bindings in [t]. *)
+
   (** {1 Pretty-printing} *)
 
   open Format

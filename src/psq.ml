@@ -42,6 +42,7 @@ module type S = sig
   val to_priority_seq : t -> (k * p) Seq.t
   val filter : (k -> p -> bool) -> t -> t
   val partition : (k -> p -> bool) -> t -> t * t
+  val map : (k -> p -> k * p) -> t -> t
   val pp : ?sep:(unit fmt) -> (k * p) fmt -> t fmt
   val pp_dump : k fmt -> p fmt -> t fmt
   val depth : t -> int
@@ -269,6 +270,13 @@ struct
     fun pf -> function N -> N | T (kp, sk, t) -> go pf kp sk t
 
   let partition pf t = filter pf t, filter (fun k p -> not (pf k p)) t
+
+  let map =
+    let rec go f kp1 sk1 = function
+      Lf -> sg (f (fst kp1) (snd kp1))
+    | NdL (kp2, t1, sk2, t2, _) -> go f kp2 sk2 t1 >< go f kp1 sk1 t2
+    | NdR (kp2, t1, sk2, t2, _) -> go f kp1 sk2 t1 >< go f kp2 sk1 t2 in
+    fun f -> function N -> N | T (kp, sk, t) -> go f kp sk t
 
   let split_at =
     let rec go k0 pk sk = function
